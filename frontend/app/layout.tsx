@@ -10,8 +10,8 @@ import { ProjectProvider } from '@/contexts/ProjectContext'
 import { ToastProvider } from '@/components/ui/Toast'
 
 export const metadata: Metadata = {
-  title: 'PII — Project Intelligence Interface',
-  description: 'AI-powered EPC project intelligence platform for data centre construction.',
+  title: 'Project Impact Intelligence — Enterprise AI Platform for Data Centre EPC',
+  description: 'AI-powered Enterprise Project Intelligence Platform for Data Centre EPC delivery. Powered by Bright AI. Unify documents, specs, schedules, and procurement into living project intelligence.',
 }
 
 export const viewport: Viewport = {
@@ -33,9 +33,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/* Inter + JetBrains Mono — UI text fonts */}
+        {/* Inter + JetBrains Mono + Outfit — UI text & display fonts */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@600;700;800;900&display=swap"
           rel="stylesheet"
         />
 

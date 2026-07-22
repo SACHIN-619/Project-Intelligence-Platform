@@ -14,7 +14,7 @@ callers only need to import from one place (api.deps).
 
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,16 +55,18 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
 
 async def get_current_user(
     token: Optional[str] = Depends(oauth2_scheme),
+    token_query: Optional[str] = Query(None, alias="token"),
     db: AsyncSession = Depends(get_db),
 ) -> Optional[User]:
     """
     Decode the JWT and return the matching User row.
-    Returns None (not 401) so downstream deps can decide how to handle.
+    Supports either Authorization header or token query parameter.
     """
-    if not token:
+    resolved_token = token or token_query
+    if not resolved_token:
         return None
 
-    payload = decode_token(token)
+    payload = decode_token(resolved_token)
     if not payload:
         return None
 

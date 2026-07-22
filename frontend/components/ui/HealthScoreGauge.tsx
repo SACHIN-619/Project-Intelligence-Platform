@@ -19,7 +19,7 @@ interface HealthScoreGaugeProps {
   className?:    string
 }
 
-const LEVEL_CONFIG: Record
+const LEVEL_CONFIG: Record<
   NonNullable<HealthScoreGaugeProps['level']>,
   { colour: string; label: string; glow: string }
 > = {

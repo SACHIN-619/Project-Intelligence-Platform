@@ -408,17 +408,34 @@ async def generate_project_report(
 )
 async def download_report(
     report_id: str,
+    db: AsyncSession = Depends(get_db),
     user: User = Depends(require_auth),
 ):
     """Streams the PDF file to the browser for download."""
     base_dir = settings.storage_local_path
+    
+    # Try to extract project_id from report_id (format: report_{project_id}_{timestamp})
+    project_name = "project"
+    if report_id.startswith("report_"):
+        parts = report_id.split("_")
+        if len(parts) >= 2:
+            project_uuid = parts[1]
+            try:
+                stmt = select(Project).where(Project.id == project_uuid)
+                proj = (await db.execute(stmt)).scalar_one_or_none()
+                if proj and proj.name:
+                    # convert name to a safe filename
+                    project_name = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in proj.name)
+            except Exception:
+                pass
+
     for ext in (".pdf", ".txt"):
         path = os.path.join(base_dir, f"{report_id}{ext}")
         if os.path.exists(path):
             return FileResponse(
                 path=path,
                 media_type="application/pdf" if ext == ".pdf" else "text/plain",
-                filename=f"project_report{ext}",
+                filename=f"{project_name}_report{ext}",
             )
 
     raise HTTPException(

@@ -838,3 +838,29 @@ input[type='range']::-moz-range-thumb {
 .react-flow__controls-button { background: #111827 !important; border-bottom: 1px solid #374151 !important; fill: #9CA3AF !important; }
 .react-flow__controls-button:hover { background: #1F2937 !important; }
 .react-flow__minimap   { border: 1px solid #374151 !important; }
+
+/* ── Homepage — global overrides ──────────────────────────────────── */
+/* Smooth scrolling for anchor navigation */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Entrance animation used on homepage hero */
+@keyframes entrance {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+.animate-entrance {
+  animation: entrance 0.7s ease-out both;
+}
+
+/* Scroll reveal — base state (JS adds .is-visible) */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}

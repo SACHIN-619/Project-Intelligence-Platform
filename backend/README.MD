@@ -1,6 +1,6 @@
 # Project Impact Intelligence — Backend
 
-> Upload project files → instantly see impact → explore recovery options
+> **Enterprise AI-powered core engine** for Project Impact Intelligence (PII) — a multi-agent project delivery platform for Data Centre EPC, powered by **Bright AI**.
 
 ---
 
@@ -9,277 +9,264 @@
 ```
 backend/
 ├── app/
-│   ├── main.py                          ← FastAPI app + router registration
-│   ├── config.py                        ← All settings (reads .env)
-│   ├── database.py                      ← Async SQLAlchemy + pgvector setup
+│   ├── main.py                          ← FastAPI application factory & router mounting
+│   ├── config.py                        ← Centralised settings reading from environment & .env
+│   ├── database.py                      ← Async SQLAlchemy pgvector setup + pool limits
+│   │
+│   ├── core/
+│   │   ├── middleware.py                ← Global logging + error handling middleware
+│   │   └── security.py                  ← JWT hashing, verify, signature validations
 │   │
 │   ├── models/
-│   │   ├── db.py                        ← All SQLAlchemy ORM models
-│   │   └── schemas.py                   ← All Pydantic request/response schemas
+│   │   ├── db.py                        ← SQLAlchemy ORM Models (Project, Task, Vendor, etc.)
+│   │   └── schemas.py                   ← Pydantic validation request/response structures
 │   │
 │   ├── api/
-│   │   ├── deps.py                      ← JWT auth + role permission guards
-│   │   ├── upload.py                    ← File upload, preview, status
-│   │   ├── analysis.py                  ← CPM analysis, dashboard, RAG query
-│   │   ├── simulation.py                ← Recovery scenarios, approve/reject
-│   │   └── project.py                   ← Project CRUD + auth + report download
+│   │   ├── deps.py                      ← JWT token parsing + RBAC permission guards
+│   │   ├── auth.py                      ← User register, standard login, and "Try Demo" login
+│   │   ├── project.py                   ← Project CRUD + baseline configurations
+│   │   ├── upload.py                    ← Upload center, commit status, preview schema mapper
+│   │   ├── analysis.py                  ← Risk register, CPM graph run, Monte Carlo metrics
+│   │   ├── simulation.py                ← Auto-recovery simulations, scenario compare
+│   │   ├── actions.py                   ← Approved actions tracking (Kanban sync)
+│   │   ├── report.py                    ← PDF Report generation endpoints
+│   │   ├── admin.py                     ← Admin panel, hours saved tracker, system status
+│   │   └── websocket.py                 ← Real-time processing progress broadcast
 │   │
-│   ├── services/
-│   │   │
-│   │   ├── intelligence/                ← THE CORE ENGINE
-│   │   │   ├── graph_engine.py          ← CPM + float + confidence propagation
-│   │   │   ├── risk_engine.py           ← Multi-signal risk scoring
-│   │   │   ├── montecarlo.py            ← Beta-dist MC simulation + sensitivity
-│   │   │   ├── recovery_engine.py       ← Template actions + multi-obj scoring
-│   │   │   └── confidence.py           ← Data quality → recommendation gating
-│   │   │
-│   │   ├── parser/
-│   │   │   ├── csv_parser.py            ← CSV/Excel → ParsedTask/Vendor
-│   │   │   ├── pdf_parser.py            ← PDF → text chunks for RAG
-│   │   │   └── schema_mapper.py         ← 3-stage column mapping (rule→fuzzy→semantic)
-│   │   │
-│   │   ├── ai/
-│   │   │   ├── gemini.py                ← Gemini client with fallback templates
-│   │   │   └── embedding.py             ← BGE-small embeddings (local, no API key)
-│   │   │
-│   │   ├── rag/
-│   │   │   └── pipeline.py              ← Hybrid retrieval + rerank + synthesis
-│   │   │
-│   │   ├── queue/
-│   │   │   └── jobs.py                  ← ARQ background jobs (parse, analyse)
-│   │   │
-│   │   └── report/
-│   │       └── generator.py             ← ReportLab PDF report builder
-│   │
-│   └── core/
-│       └── __init__.py
+│   └── services/
+│       ├── ai/
+│       │   ├── gemini.py                ← 3-Layer AI Provider (Gemini → Groq → degrades gracefully)
+│       │   ├── embedding.py             ← Local BGE embedding model (zero API cost)
+│       │   └── orchestrator.py          ← multi-agent prompt synthesis & reasoning
+│       │
+│       ├── intelligence/
+│       │   ├── graph_engine.py          ← CPM (earliest/latest start, total float, critical path)
+│       │   ├── risk_engine.py           ← Multi-signal risk assessment logic
+│       │   ├── montecarlo.py            ← 1000x PERT Beta schedule simulations
+│       │   ├── recovery_engine.py       ← Action impact simulator (days saved, confidence)
+│       │   ├── project_health.py        ← Weighted composite score calculator
+│       │   ├── weather_agent.py         ← 14-day weather forecast keyword correlation
+│       │   ├── vendor_scorer.py         ← Cross-project vendor reliability tracking
+│       │   ├── specification_agent.py   ← Quality & spec checker
+│       │   └── memory_service.py        ← Approved recovery action learning feedback loop
+│       │
+│       ├── parser/
+│       │   ├── csv_parser.py            ← Ingests schedules, dates, and dependencies
+│       │   ├── pdf_parser.py            ← Extracts specifications for RAG ingestion
+│       │   └── schema_mapper.py         ← Column mapper (Exact → Fuzzy → Semantic BGE)
+│       │
+│       ├── rag/
+│       │   └── pipeline.py              ← Cosine similarity search + context synthesis
+│       │
+│       ├── queue/
+│       │   └── jobs.py                  ← ARQ/in-memory task executor for background processing
+│       │
+│       └── report/
+│           └── generator.py             ← ReportLab PDF generator (narrative, tables, formatting)
 │
-├── synthetic/
-│   ├── generate_data.py                 ← Generates realistic demo dataset
-│   └── data/                            ← Output: schedule.csv, procurement.csv, notes.txt
+├── migrations/                          ← Alembic database migrations
+├── tests/                               ← Pytest test suite (cpm, risk, parsers, apis)
+├── synthetic/                           ← Data generation helper scripts
+│   ├── generate_data.py                 ← Generates mock schedules and specifications
+│   └── data/                            ← Synthetic schedules (01_simple to 13_mixed_dates)
 │
-├── migrations/                          ← Alembic migrations (init with alembic init)
-├── tests/                               ← Pytest tests
-├── .env.example                         ← Copy to .env and fill in keys
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-└── README.md
+├── .env.example                         ← Configuration template
+├── requirements.txt                     ← Production python packages
+├── requirements-ai.txt                  ← AI & Embedding packages
+├── requirements-dev.txt                 ← Testing & validation tools
+├── Dockerfile                           ← Multi-stage production build
+├── docker-compose.yml                   ← DB + Redis + App container configuration
+└── pytest.ini                           ← Pytest test root environment settings
 ```
-PHASE A — Foundation (DONE ✅)
-  config.py          → GROQ + feature flags
-  gemini.py          → 3-layer AI fallback
-  schema_mapper.py   → task_id bug fix
-  jobs.py            → tasks_analysed + weather + vendor wiring
-  project_health.py  → health score engine (NEW)
-  memory_service.py  → AI decision learning (NEW)
-  weather_agent.py   → Open-Meteo integration (NEW)
-  vendor_scorer.py   → cross-project vendor reliability (NEW)
-
-PHASE B — API Layer (NOW)
-  analysis.py        → expose health score + weather risks
-                       + memory context in RAG query
-  admin.py           → real metrics: vendor scores, AI performance,
-                       hours saved from actual data
-
-PHASE C — AI Intelligence Layer
-  orchestrator.py    → wire new gemini properly, add explainability
-  rag/pipeline.py    → inject memory context + better citations
-  recovery_engine.py → use memory for smarter recommendations
-
-PHASE D — Knowledge Engine (from Phase 20 discussion)
-  knowledge_engine.py → entity extraction + relationship tracking
-                         lightweight PostgreSQL graph
-
-PHASE E — Report Enhancement
-  report/generator.py → AI narrative + health score + executive summary
-
-PHASE F — Schema Updates
-  schemas.py          → ProjectHealthScore, VendorScoreResponse,
-                         WeatherRisk fields in AnalysisResult
-
-THE 2 THINGS FROM DISCUSSION YOU LIKELY MEAN:
-  1. Knowledge Graph (Phase 20) → knowledge_engine.py
-  2. Decision Intelligence (Phase 22/26) → recovery_engine.py improvements
-     Both need new files, given below in Phase C and D.
 
 ---
 
-## Quick Start (Local, No Docker)
+## ⚡ Core Engine Innovations (Bright AI)
+
+1. **3-Layer AI Fallback Chain (`app/services/ai/gemini.py`)**
+   - **Layer 1:** Google Gemini Pro/Flash (primary)
+   - **Layer 2:** Groq LLaMA-3.3-70B-Versatile (runs automatically on Gemini quota limits)
+   - **Layer 3:** Graceful Degradation (uses structured fallback data; system never crashes)
+
+2. **Smart Schema Mapper (`app/services/parser/schema_mapper.py`)**
+   - Resolves messy sheet column headers using a 3-stage matching cascade:
+     * *Exact string match* (dictionary check, confidence 1.0)
+     * *Fuzzy matching* (via Levenshtein ratio, confidence 0.7–0.9)
+     * *Semantic embedding comparison* (local BGE embeddings, confidence 0.5–0.8)
+
+3. **Predictive Weather Correlation (`app/services/intelligence/weather_agent.py`)**
+   - Ingests free 14-day forecasts from the **Open-Meteo API** (completely keyless).
+   - Flags outdoor-sensitive tasks matching keywords (*civil, foundation, excavation, structural steel, external*) if forecast exceeds rain, heat, or wind safety guidelines.
+
+4. **Cross-Project Vendor Reliability (`app/services/intelligence/vendor_scorer.py`)**
+   - Builds vendor profiles aggregating historical data across all projects in the tenant organisation.
+   - Outputs an on-time percentage score which dynamically penalises or boosts task risk calculations.
+
+5. **PERT-Beta Monte Carlo Engine (`app/services/intelligence/montecarlo.py`)**
+   - Simulates 1,000 schedule run-throughs mapping task durations to PERT-Beta probability distributions.
+   - Computes standard confidence milestones (P50, P80, P90) to support schedule commitments.
+
+6. **Explainable AI Recommendations (`app/services/intelligence/recovery_engine.py`)**
+   - AI-recommended actions (Add Crew, Parallel Tasks, Backup Vendor) include confidence values, evidence citations, expected recovery days, and cost ratings.
+
+7. **Decision Memory Service (`app/services/intelligence/memory_service.py`)**
+   - Learns from managers' decisions.
+   - When a manager approves or rejects recovery actions, it updates a feedback loop that biases future recommendations toward proven solutions.
+
+---
+
+## 🚀 Quick Start (Local Development)
+
+### 1. Requirements & Version Check
+The backend requires **Python 3.12** or **Python 3.13** and **PostgreSQL** (version 15+ with the `pgvector` extension installed).
 
 ```bash
-# 1. Clone and enter
+# Verify Python version
+python --version
+```
+
+### 2. Set Up Virtual Environment
+```bash
+# Clone or enter directory
 cd backend
 
-# 2. Create virtualenv
-python -m venv venv
-venv\Scripts\activate
+# Create virtualenv (Use py -3.12 if you have multiple py versions)
+python -m venv .venv
 
-# 3. Install deps
-pip install -r requirements.txt
-
-# 4. Start Postgres + Redis (Docker just for DB)
-docker run -d --name pii_pg -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 pgvector/pgvector:pg16
-docker run -d --name pii_redis -p 6379:6379 redis:7-alpine
-
-# 5. Configure environment
-cp .env.example .env
-# → Set GEMINI_API_KEY in .env (get free key at aistudio.google.com)
-
-# 6. Start server
-uvicorn app.main:app --reload --port 8000
+# Activate on Windows
+.\.venv\Scripts\activate
 ```
 
-Server runs at **http://localhost:8000**
-API docs at **http://localhost:8000/docs**
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+pip install -r requirements-ai.txt
+pip install -r requirements-dev.txt
+```
+
+#### 🔧 Troubleshooting Numpy/SciPy Import Errors
+If you run into import failures with NumPy or SciPy on Windows:
+```bash
+python -m pip install --upgrade --force-reinstall "numpy<2.0" scipy
+```
+
+### 4. Run PostgreSQL + Redis (using Docker)
+To get PostgreSQL with `pgvector` and a Redis cache running instantly:
+```bash
+# Run pgvector PostgreSQL
+docker run -d --name pii_pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 pgvector/pgvector:pg16
+
+# Run Redis
+docker run -d --name pii_redis -p 6379:6379 redis:7-alpine
+```
+
+### 5. Setup Local Configurations
+```bash
+# Copy template env file
+cp .env.example .env
+```
+Open `.env` and configure:
+- `DATABASE_URL`: `postgresql+asyncpg://postgres:postgres@localhost:5432/pii`
+- `GEMINI_API_KEY`: *(Get a free key at [aistudio.google.com](https://aistudio.google.com))*
+- `GROQ_API_KEY`: *(Optional fallback fallback key)*
+- `SECRET_KEY`: *(A long random string for JWT signatures)*
+
+### 6. Start the Server
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+- Interactive API Docs will be available at: http://localhost:8000/docs
+- Alternate Redoc available at: http://localhost:8000/redoc
 
 ---
 
-## Quick Start (Docker Compose)
+## 🐳 Docker Compose (All Services)
 
+You can run the entire backend stack (FastAPI, Redis, PostgreSQL, Alembic migrations) in containers:
 ```bash
-cp .env.example .env
-# edit .env — set GEMINI_API_KEY
-
+# Build and bring up stack
 docker-compose up --build
 ```
 
 ---
 
-## Demo Flow (Judges)
+## 🛠️ Testing & Mock Dataset
 
+Generate high-quality synthetic files matching 13 representative project situations:
+```bash
+python synthetic/generate_data.py
 ```
-1. POST /api/v1/auth/demo-login
-   → get access_token (no registration needed)
+This writes CSV schedules, procurement lists, and PDF specifications directly to `synthetic/data/`.
 
-2. POST /api/v1/projects
-   body: {"name": "Bangalore DC Phase 1"}
-   → get project_id
-
-3. python synthetic/generate_data.py
-   → creates synthetic/data/schedule.csv + procurement.csv
-
-4. POST /api/v1/upload/preview
-   file: synthetic/data/schedule.csv
-   → see smart column mapping preview
-
-5. POST /api/v1/upload/commit
-   file: synthetic/data/schedule.csv + project_id
-   → background parse + graph build starts
-
-6. GET /api/v1/analysis/{project_id}
-   → full CPM + risks + Monte Carlo results
-
-7. POST /api/v1/simulation/auto-recover/{project_id}
-   → ranked recovery options (no AI needed)
-
-8. POST /api/v1/simulation/run
-   body: {"project_id": "...", "action_type": "backup_vendor",
-          "action_params": {"task_id": "...", "delay_reduction_days": 5}}
-   → before/after comparison + P80/P90 completion dates
-
-9. POST /api/v1/simulation/{scenario_id}/approve
-   → manager approval flow
-
-10. POST /api/v1/report/generate
-    → download PDF intelligence report
+To run the full backend testing suite:
+```bash
+pytest
 ```
 
 ---
 
-## API Reference
+## ⚙️ REST API Reference
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/v1/auth/demo-login` | Get demo token instantly |
-| POST | `/api/v1/auth/login` | Standard login |
-| POST | `/api/v1/projects` | Create project |
-| GET  | `/api/v1/projects` | List projects |
-| POST | `/api/v1/upload/preview` | Preview schema mapping |
-| POST | `/api/v1/upload/commit` | Upload + queue processing |
-| GET  | `/api/v1/upload/{id}` | Check processing status |
-| GET  | `/api/v1/analysis/{project_id}` | Full CPM + risks + MC |
-| GET  | `/api/v1/analysis/{project_id}/dashboard` | Lightweight health view |
-| POST | `/api/v1/analysis/{project_id}/run` | Re-trigger analysis |
-| POST | `/api/v1/analysis/query` | RAG Q&A over documents |
-| POST | `/api/v1/simulation/auto-recover/{id}` | Auto-generate recovery options |
-| POST | `/api/v1/simulation/run` | Simulate specific action |
-| POST | `/api/v1/simulation/{id}/approve` | Approve scenario |
-| POST | `/api/v1/simulation/{id}/reject` | Reject with reason |
-| POST | `/api/v1/report/generate` | Generate PDF report |
-| GET  | `/api/v1/report/download/{id}` | Download PDF |
-
----
-
-## Key Design Decisions
-
-| Decision | Reason |
-|----------|--------|
-| FastAPI + Python | Pandas, NetworkX, NumPy ecosystem |
-| PostgreSQL + pgvector | One DB for relational + vector search |
-| SQLAlchemy async | Non-blocking throughout |
-| ARQ (not Celery) | Lightweight Redis queue, no broker config |
-| BGE-small (local) | No API key, 384-dim, fast |
-| Gemini free tier | Best free LLM; fallback to templates |
-| Beta/PERT distribution | More realistic than uniform for durations |
+| Endpoint | Method | Role Allowed | Description |
+|:---|:---:|:---:|:---|
+| **Authentication** | | | |
+| `/api/v1/auth/register` | `POST` | *All* | Standard user signup |
+| `/api/v1/auth/login` | `POST` | *All* | Fetch JWT bearer access token |
+| `/api/v1/auth/demo-login` | `POST` | *All* | One-click judge login (creates temp manager user) |
+| **Projects** | | | |
+| `/api/v1/projects` | `POST` | `admin`, `manager`, `engineer` | Create new data centre project baseline |
+| `/api/v1/projects` | `GET` | *All* | List active projects for current tenant |
+| **Upload Center** | | | |
+| `/api/v1/upload/preview` | `POST` | `admin`, `manager`, `engineer`, `quality`, `procurement` | Preview column header mapping before commit |
+| `/api/v1/upload/commit` | `POST` | `admin`, `manager`, `engineer`, `quality`, `procurement` | Upload files and trigger background processing |
+| `/api/v1/upload/status/{id}` | `GET` | *All* | Fetch parser progress and mapping accuracy |
+| **Schedule Analysis** | | | |
+| `/api/v1/analysis/{id}` | `GET` | *All* | Run CPM, risk register extraction, and Monte Carlo |
+| `/api/v1/analysis/{id}/dashboard` | `GET` | *All* | Fetch project health scores and KPIs |
+| `/api/v1/analysis/query` | `POST` | *All* | AI chat (RAG) over spec documents with page citations |
+| **Recovery Simulation** | | | |
+| `/api/v1/simulation/auto-recover/{id}`| `POST` | `admin`, `manager`, `engineer` | Fetch AI recommendations ranked by benefit |
+| `/api/v1/simulation/run` | `POST` | `admin`, `manager`, `engineer` | Simulate recovery actions on the CPM schedule |
+| `/api/v1/simulation/{id}/approve` | `POST` | `admin`, `manager` | Approve recovery scenario |
+| `/api/v1/simulation/{id}/reject` | `POST` | `admin`, `manager` | Reject recommendation with reason code |
+| **Actions Tracking** | | | |
+| `/api/v1/actions` | `GET` | *All* | Fetch approved actions sync to Kanban |
+| **PDF Reporting** | | | |
+| `/api/v1/report/generate` | `POST` | `admin`, `manager` | Trigger PDF document generation job |
+| `/api/v1/report/download/{id}` | `GET` | *All* | Stream PDF report file |
+| **Admin & System** | | | |
+| `/api/v1/admin/metrics` | `GET` | `admin` | Fetch server response, hours saved, and vendor scores |
+| `/api/v1/admin/health` | `GET` | `admin` | Check DB, Redis, and Layer 1/2 AI availability |
 
 ---
 
-## Environment Variables (key ones)
+## 📊 Database Schema Summary
 
-```env
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/pii_db
-REDIS_URL=redis://localhost:6379/0
-GEMINI_API_KEY=your_key_here
-SECRET_KEY=your_64_char_random_string
-```
+The database uses PostgreSQL with the pgvector extension.
 
-Get Gemini API key free: https://aistudio.google.com/app/apikey
+1. **`organisations`**: Root tenant model.
+2. **`users`**: Auth credentials and system role.
+3. **`projects`**: Project baselines, planned completion, predicted delay, health score.
+4. **`uploads`**: Ingested files, parsing scores, mapping definitions.
+5. **`tasks`**: Project tasks, dependency edges, floats, early/late times, critical path flag.
+6. **`vendors`**: Vendor names, lead times, cross-project on-time percentage records.
+7. **`risks`**: AI-extracted schedule, quality, weather, or procurement risks.
+8. **`scenarios`**: Simulative recovery runs.
+9. **`actions`**: Approved scenarios tracked on the Kanban board.
+10. **`document_chunks`**: Ingested document chunks with 384-dimension vector embeddings.
+11. **`audit_events`**: Immutable system audit trail including decision learning logs.
+12. **`schema_mapping_memory`**: Naming mapping cache per tenant organisation.
 
+---
 
-1. Weather Risk Agent (NEW)
-   → Pulls live 14-day forecast from Open-Meteo (free API)
-   → Matches against outdoor tasks by keyword detection
-   → Adds weather risks automatically to risk register
-   → No EPC tool does this currently
+## ⚡ Multi-Agent prompt pipeline (RAG & Rationale)
+When querying the AI Assistant:
+1. Retrieval returns relevant chunks from `document_chunks` using cosine similarity.
+2. The `KnowledgeGraph` service builds relationships relative to active entities.
+3. The prompt is injected with: RAG document chunks + Critical path dependencies + Live weather forecast warnings + Vendor reliability scores.
+4. Result: Grounded, mathematically backed answers that explain *why* recommendations are made.
 
-2. Vendor Reliability Scoring (NEW)
-   → Tracks on-time % per vendor across ALL projects in the org
-   → Risk scores are automatically adjusted upward for repeat offenders
-   → Creates a vendor performance memory that improves over time
+---
 
-3. 3-Layer AI Fallback (NEW)
-   → Gemini → Groq → Graceful degrade
-   → Demo literally cannot crash due to AI quota
-   → Silent to user — they see answers regardless of which layer responded
-
-4. Confidence Tooltip (NEW)
-   → When confidence is 0%, tells user WHY and exactly how to fix it
-   → No other AI tool explains its own uncertainty this clearly
-
----------------------
-Missing from current doc:
-  - Stakeholder personas (PM, QA, Procurement, Vendor, etc.)
-  - Industry background + market sizing
-  - Existing-solutions comparison table
-  - 8-12 detailed business scenarios ("UPS delayed → traditional vs PII")
-  - Fictional case studies (Delhi DC, Mumbai Hyperscale)
-  - UI walkthrough with annotated screenshots
-  - 3-tier diagrams (Business View / System View / Developer View)
-  - Glossary, appendix, API samples
-  ------------------------------------------
-
-
-# Incase the python version is not 3.13.xx so run below command:
- - cd backend
- - py -3.12 -m venv .venv
- - python --version
- - 
-
-
- cd C:\Users\Sachin\Desktop\PII\backend
-
-.\.venv\Scripts\activate
-
-uvicorn app.main:app --reload
+*Project Impact Intelligence © 2026*  
+*Bright AI · Data Centre EPC Intelligence Platform*

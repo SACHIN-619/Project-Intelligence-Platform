@@ -51,12 +51,12 @@ def create_refresh_token(user_id: str, org_id: str) -> str:
         "exp": expire,
         "type": "refresh",
     }
-    return jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
 def decode_token(token: str) -> Optional[dict]:
     """Returns payload dict or None if invalid/expired."""
     try:
-        return jwt.decode(token, settings.secret_key, algorithms=[settings.jwt_algorithm])
+        return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
     except JWTError:
         return None
