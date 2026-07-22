@@ -1,0 +1,78 @@
+version: "3.9"
+
+services:
+
+  # ── PostgreSQL + pgvector ────────────────────────────────────────────────
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: pii_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pii_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (queue + cache) ────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: pii_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── FastAPI backend ──────────────────────────────────────────────────────
+  api:
+    build: .
+    container_name: pii_api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/pii_db
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_LOCAL_PATH: /tmp/pii_uploads
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app/app          # hot reload in dev
+      - uploads_data:/tmp/pii_uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ── ARQ worker (background jobs) ────────────────────────────────────────
+  worker:
+    build: .
+    container_name: pii_worker
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/pii_db
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_LOCAL_PATH: /tmp/pii_uploads
+    env_file:
+      - .env
+    volumes:
+      - uploads_data:/tmp/pii_uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: arq app.services.queue.jobs.WorkerSettings
+
+volumes:
+  postgres_data:
+  uploads_data:
