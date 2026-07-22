@@ -66,6 +66,42 @@ backend/
 ├── docker-compose.yml
 └── README.md
 ```
+PHASE A — Foundation (DONE ✅)
+  config.py          → GROQ + feature flags
+  gemini.py          → 3-layer AI fallback
+  schema_mapper.py   → task_id bug fix
+  jobs.py            → tasks_analysed + weather + vendor wiring
+  project_health.py  → health score engine (NEW)
+  memory_service.py  → AI decision learning (NEW)
+  weather_agent.py   → Open-Meteo integration (NEW)
+  vendor_scorer.py   → cross-project vendor reliability (NEW)
+
+PHASE B — API Layer (NOW)
+  analysis.py        → expose health score + weather risks
+                       + memory context in RAG query
+  admin.py           → real metrics: vendor scores, AI performance,
+                       hours saved from actual data
+
+PHASE C — AI Intelligence Layer
+  orchestrator.py    → wire new gemini properly, add explainability
+  rag/pipeline.py    → inject memory context + better citations
+  recovery_engine.py → use memory for smarter recommendations
+
+PHASE D — Knowledge Engine (from Phase 20 discussion)
+  knowledge_engine.py → entity extraction + relationship tracking
+                         lightweight PostgreSQL graph
+
+PHASE E — Report Enhancement
+  report/generator.py → AI narrative + health score + executive summary
+
+PHASE F — Schema Updates
+  schemas.py          → ProjectHealthScore, VendorScoreResponse,
+                         WeatherRisk fields in AnalysisResult
+
+THE 2 THINGS FROM DISCUSSION YOU LIKELY MEAN:
+  1. Knowledge Graph (Phase 20) → knowledge_engine.py
+  2. Decision Intelligence (Phase 22/26) → recovery_engine.py improvements
+     Both need new files, given below in Phase C and D.
 
 ---
 
@@ -221,6 +257,19 @@ Get Gemini API key free: https://aistudio.google.com/app/apikey
 4. Confidence Tooltip (NEW)
    → When confidence is 0%, tells user WHY and exactly how to fix it
    → No other AI tool explains its own uncertainty this clearly
+
+---------------------
+Missing from current doc:
+  - Stakeholder personas (PM, QA, Procurement, Vendor, etc.)
+  - Industry background + market sizing
+  - Existing-solutions comparison table
+  - 8-12 detailed business scenarios ("UPS delayed → traditional vs PII")
+  - Fictional case studies (Delhi DC, Mumbai Hyperscale)
+  - UI walkthrough with annotated screenshots
+  - 3-tier diagrams (Business View / System View / Developer View)
+  - Glossary, appendix, API samples
+  ------------------------------------------
+
 
 # Incase the python version is not 3.13.xx so run below command:
  - cd backend
