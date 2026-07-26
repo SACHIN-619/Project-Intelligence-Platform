@@ -40,14 +40,14 @@ async def lifespan(app: FastAPI):
     try:
         await create_tables()
     except Exception as e:
-        print(f"⚠️  [lifespan startup warning] DB tables check failed: {e}")
+        print(f"[lifespan startup warning] DB tables check failed: {e}")
         print("    Running with degraded DB connectivity")
 
-    print(f"✅  {settings.app_name} v{settings.app_version} ready")
-    print(f"    Docs  → http://localhost:8000/docs")
-    print(f"    Env   → {settings.environment}")
+    print(f"[READY] {settings.app_name} v{settings.app_version}")
+    print(f"    Docs  -> http://localhost:8000/docs")
+    print(f"    Env   -> {settings.environment}")
     yield
-    print("👋  Shutting down")
+    print("[SHUTTING DOWN]")
 
 
 # ── App ────────────────────────────────────────────────────────────────────────
