@@ -56,19 +56,31 @@ class PDFParser:
         """Parse PDF bytes; try PyMuPDF first, fall back to pdfplumber."""
         try:
             return self._parse_pymupdf(content, filename)
-        except ImportError:
+        except (ImportError, Exception):
             pass
         try:
             return self._parse_pdfplumber(content, filename)
-        except ImportError:
+        except (ImportError, Exception):
             pass
         # Last resort: treat as plain text if somehow decodable
+        try:
+            text = content.decode("utf-8")
+            return PDFParseResult(
+                chunks=[TextChunk(text, 1, 0)],
+                page_count=1,
+                document_type="unknown",
+                title=None,
+                warnings=["Raw text fallback from invalid PDF bytes."],
+            )
+        except Exception:
+            pass
+
         return PDFParseResult(
-            chunks=[TextChunk("[PDF extraction unavailable — install pymupdf or pdfplumber]", 1, 0)],
+            chunks=[TextChunk("[PDF extraction failed — invalid or corrupted file structure]", 1, 0)],
             page_count=0,
             document_type="unknown",
             title=None,
-            warnings=["PDF extraction libraries not installed. Run: pip install pymupdf pdfplumber"],
+            warnings=["Could not parse bytes as PDF or raw text."],
         )
 
     # ── PyMuPDF path ──────────────────────────────────────────────────────────

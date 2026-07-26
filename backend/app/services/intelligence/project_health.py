@@ -89,8 +89,10 @@ def compute_project_health(
     )
     procurement_score = max(0, 100 - delayed_vendors * 15)
 
-    # ── 4. Monte Carlo Confidence (10%) ───────────────────────────────────────
-    if mc_result and hasattr(mc_result, "on_time_probability"):
+    # ── 4. Project Confidence (10%) ───────────────────────────────────────────
+    if hasattr(risk_result, "confidence_score"):
+        mc_confidence_score = round(risk_result.confidence_score * 100)
+    elif mc_result and hasattr(mc_result, "on_time_probability"):
         mc_confidence_score = round(mc_result.on_time_probability * 100)
     else:
         # Fall back to graph engine confidence

@@ -250,9 +250,9 @@ class ProjectGraphEngine:
         # ── 6. DELAY CASCADE (which task's delay caused how many days) ────────
         delay_cascade = self._compute_delay_cascade(topo, scheduled, project_ef)
 
-        # Freeze baseline on first ever computation
+        # Freeze baseline on first ever computation (without any delays)
         if self._baseline_completion is None:
-            self._baseline_completion = project_ef
+            self._baseline_completion = self._cpm_forward_pass(topo, {tid: 0 for tid in topo})
 
         return GraphResult(
             project_completion_day=project_ef,
@@ -266,6 +266,20 @@ class ProjectGraphEngine:
 
     # ── Delay cascade analysis ────────────────────────────────────────────────
 
+    def _cpm_forward_pass(self, topo: List[str], temp_delays: Dict[str, int]) -> int:
+        """Helper to run a fast forward pass with temporary delay values."""
+        efs: Dict[str, int] = {}
+        for tid in topo:
+            task = self.tasks[tid]
+            eff_dur = task.duration + temp_delays.get(tid, task.actual_delay)
+            predecessors = list(self.graph.predecessors(tid))
+            if not predecessors:
+                es = 0
+            else:
+                es = max(efs[p] for p in predecessors)
+            efs[tid] = es + eff_dur
+        return max(efs.values()) if efs else 0
+
     def _compute_delay_cascade(
         self,
         topo: List[str],
@@ -277,17 +291,17 @@ class ProjectGraphEngine:
         how much the project would shrink. That delta = the task's contribution.
         """
         cascade: Dict[str, int] = {}
-        for tid in topo:
-            task = self.tasks[tid]
-            if task.actual_delay == 0:
-                continue
+        delayed_tids = [tid for tid in topo if self.tasks[tid].actual_delay > 0]
+        if not delayed_tids:
+            return cascade
 
-            saved_days = task.actual_delay
-            # Only count if task is on the critical path or near it
-            tf = scheduled[tid].total_float
-            contribution = max(0, saved_days - tf)
-            if contribution > 0:
-                cascade[tid] = contribution
+        for tid in delayed_tids:
+            # Simulate removing the delay by setting it to 0
+            temp_delays = {tid: 0}
+            new_project_ef = self._cpm_forward_pass(topo, temp_delays)
+            saved_days = project_ef - new_project_ef
+            if saved_days > 0:
+                cascade[tid] = saved_days
 
         return cascade
 
@@ -313,14 +327,14 @@ class ProjectGraphEngine:
 
     # ── Impact scoring ────────────────────────────────────────────────────────
 
-    def compute_impact_score(self, task_id: str) -> float:
+    def compute_impact_score(self, task_id: str, schedule_result: Optional[GraphResult] = None) -> float:
         """
         Impact score = criticality × (1 + downstream_count) × (1 / (1 + float)).
         Used to rank which tasks the recovery engine should target first.
         """
         if task_id not in self.tasks:
             return 0.0
-        result = self.compute_schedule()
+        result = schedule_result if schedule_result is not None else self.compute_schedule()
         st = result.scheduled_tasks.get(task_id)
         if not st:
             return 0.0
@@ -333,7 +347,8 @@ class ProjectGraphEngine:
 
     def ranked_impact_tasks(self) -> List[Tuple[str, float]]:
         """Return all tasks sorted by impact score descending."""
-        scores = [(tid, self.compute_impact_score(tid)) for tid in self.tasks]
+        result = self.compute_schedule()
+        scores = [(tid, self.compute_impact_score(tid, result)) for tid in self.tasks]
         return sorted(scores, key=lambda x: x[1], reverse=True)
 
     # ── Versioning / rollback ─────────────────────────────────────────────────

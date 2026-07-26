@@ -355,6 +355,14 @@ class RAGPipeline:
         ]
 
         confidence = self._retrieval_confidence(context_chunks, len(all_chunks))
+        try:
+            from app.services.intelligence.confidence import ConfidencePipeline
+            report = await ConfidencePipeline.compute_for_project(
+                self.db, project_id, org_id, rag_chunks_count=len(context_chunks)
+            )
+            confidence = float(min(1.0, max(0.0, confidence * 0.5 + report.overall * 0.5)))
+        except Exception:
+            pass
 
         # ── 8. Build enriched project context for LLM ──────────────────────────
         enriched_context = dict(project_context)

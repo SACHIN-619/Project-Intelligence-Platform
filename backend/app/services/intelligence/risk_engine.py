@@ -71,6 +71,7 @@ class RiskEngineResult:
     top_risk: Optional[RiskItem]
     risks_by_type: Dict[str, List[RiskItem]]
     summary: str
+    confidence_score: float = 0.8
 
 
 class RiskEngine:
@@ -268,6 +269,32 @@ class RiskEngine:
         vendor_history_scores: output of vendor_scorer.compute_vendor_reliability()
         Used to adjust risk scores upward for repeat offenders.
         """
+        # Compute dynamic data quality confidence from graph and vendors
+        from app.services.intelligence.confidence import ConfidencePipeline, DataSource
+        pipeline = ConfidencePipeline()
+        
+        has_tasks = len(engine.tasks) > 0
+        has_durations = any(t.duration is not None for t in engine.tasks.values()) if has_tasks else False
+        has_dependencies = any(engine.graph.has_node(tid) and list(engine.graph.successors(tid)) for tid in engine.tasks) if has_tasks else False
+        has_statuses = any(t.status for t in engine.tasks.values()) if has_tasks else False
+
+        pipeline.register_field("task_name", DataSource.MANUAL_UPLOAD if has_tasks else DataSource.DEFAULT_ASSUMED, has_tasks)
+        pipeline.register_field("duration", DataSource.MANUAL_UPLOAD if has_durations else DataSource.DEFAULT_ASSUMED, has_durations)
+        pipeline.register_field("dependency", DataSource.MANUAL_UPLOAD if has_dependencies else DataSource.DEFAULT_ASSUMED, has_dependencies)
+        pipeline.register_field("status", DataSource.MANUAL_UPLOAD if has_statuses else DataSource.DEFAULT_ASSUMED, has_statuses)
+
+        has_vendors = len(vendors) > 0 if vendors else False
+        has_vendor_names = any(v.vendor_name for v in vendors) if has_vendors else False
+        has_lead_times = any(v.lead_time_days is not None for v in vendors) if has_vendors else False
+        has_delivery_status = any(v.delivery_status for v in vendors) if has_vendors else False
+
+        pipeline.register_field("vendor_name", DataSource.MANUAL_UPLOAD if has_vendor_names else DataSource.DEFAULT_ASSUMED, has_vendor_names)
+        pipeline.register_field("lead_time", DataSource.MANUAL_UPLOAD if has_lead_times else DataSource.DEFAULT_ASSUMED, has_lead_times)
+        pipeline.register_field("delivery_status", DataSource.MANUAL_UPLOAD if has_delivery_status else DataSource.DEFAULT_ASSUMED, has_delivery_status)
+
+        conf_report = pipeline.compute()
+        project_conf = conf_report.overall
+
         all_risks: List[RiskItem] = []
         all_risks.extend(self._graph_risks(graph_result, engine))
         
@@ -284,6 +311,10 @@ class RiskEngine:
                             r.risk_score, vendor_name, vendor_history_scores
                         )
             all_risks.extend(vendor_risks)
+
+        # Overwrite ad-hoc confidence with overall pipeline confidence
+        for r in all_risks:
+            r.confidence = project_conf
 
         # Sort by score descending
         all_risks.sort(key=lambda r: r.risk_score, reverse=True)
@@ -307,6 +338,7 @@ class RiskEngine:
             top_risk=top,
             risks_by_type=by_type,
             summary=summary,
+            confidence_score=project_conf,
         )
 
     def _build_summary(

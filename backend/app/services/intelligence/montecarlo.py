@@ -184,25 +184,23 @@ class MonteCarloEngine:
         histogram = {int(d): int(c) for d, c in zip(unique, counts)}
 
         # ── Sensitivity analysis ──────────────────────────────────────────────
-        baseline_var = np.var(completion_days)
+        completion_mean = np.mean(completion_days)
+        completion_std = np.std(completion_days)
+        
         sensitivity: Dict[str, float] = {}
-
-        for tid in topo:
-            fixed = samples.copy()
-            fixed[tid] = np.full(n, np.mean(samples[tid]))
-
-            fixed_completions = np.zeros(n)
-            for i in range(n):
-                ef = {}
-                for t in topo:
-                    d   = fixed[t][i]
-                    preds = list(g.predecessors(t))
-                    es  = max((ef[p] for p in preds), default=0.0)
-                    ef[t] = es + d
-                fixed_completions[i] = max(ef.values())
-
-            variance_reduced = baseline_var - np.var(fixed_completions)
-            sensitivity[tid] = float(max(0.0, variance_reduced / max(baseline_var, 1e-6)))
+        if completion_std > 1e-6:
+            for tid in topo:
+                task_samples = samples[tid]
+                task_std = np.std(task_samples)
+                if task_std > 1e-6:
+                    # Pearson correlation coefficient r:
+                    r = np.mean((task_samples - np.mean(task_samples)) * (completion_days - completion_mean)) / (task_std * completion_std)
+                    sensitivity[tid] = float(max(0.0, min(1.0, r ** 2)))
+                else:
+                    sensitivity[tid] = 0.0
+        else:
+            for tid in topo:
+                sensitivity[tid] = 0.0
 
         return MCResult(
             p50=p50,

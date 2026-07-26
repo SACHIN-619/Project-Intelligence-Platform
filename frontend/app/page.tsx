@@ -170,7 +170,7 @@ function ScrollZoomHero({ onDemo, loading }: { onDemo: () => void; loading: bool
 
   // Text ZOOMS IN and flies past camera (Variation B portal)
   const scale = useTransform(scrollYProgress, [0, 0.6], [1, 28])
-  const opacity = useTransform(scrollYProgress, [0, 0.05, 0.45, 0.6], [0.08, 0.25, 0.15, 0])
+  const opacity = useTransform(scrollYProgress, [0, 0.05, 0.45, 0.6], [0.03, 0.08, 0.05, 0])
   const videoOpacity = useTransform(scrollYProgress, [0.3, 0.6], [0, 0.85])
   const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '30%'])
   const springScale = useSpring(scale, { stiffness: 80, damping: 20 })
@@ -215,7 +215,7 @@ function ScrollZoomHero({ onDemo, loading }: { onDemo: () => void; loading: bool
         </motion.div>
 
         {/* MEGA PORTAL TEXT — zooms into camera */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none translate-y-16">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none translate-y-48">
           <motion.div
             style={{ scale: springScale, opacity, transformOrigin: 'center center' }}
             className="text-center select-none"
@@ -344,7 +344,7 @@ function ScrollZoomHero({ onDemo, loading }: { onDemo: () => void; loading: bool
 
         {/* Right panel — Live graph card */}
         <motion.div
-          className="absolute right-12 top-[58%] -translate-y-1/2 hidden xl:block pointer-events-none opacity-90"
+          className="absolute right-12 top-[68%] -translate-y-1/2 hidden xl:block pointer-events-none opacity-70"
           initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6, duration: 0.8 }}
           style={{ opacity: useTransform(scrollYProgress, [0, 0.2], [1, 0]) }}
         >

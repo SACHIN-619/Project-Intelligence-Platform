@@ -329,6 +329,35 @@ export function getReportDownloadUrl(reportId: string): string {
 }
 
 // ═════════════════════════════════════════════════════════════════════════
+// COMPLIANCE
+// ═════════════════════════════════════════════════════════════════════════
+
+export interface ComplianceData {
+  compliant: boolean
+  compliance_score: number
+  ncrs: {
+    ncr_id: string
+    parameter: string
+    specified_value: string
+    actual_value: string
+    deviation_pct: number
+    severity: 'minor' | 'major' | 'critical'
+    description: string
+    source_document: string
+    affected_task: string | null
+    recommendation: string
+  }[]
+  parameters_checked: number
+  parameters_passed: number
+  tier_compliance: Record<string, boolean>
+  summary: string
+}
+
+export async function checkCompliance(projectId: string): Promise<ApiResult<ComplianceData>> {
+  return request<ComplianceData>(`/compliance/check/${projectId}`)
+}
+
+// ═════════════════════════════════════════════════════════════════════════
 // ADMIN
 // ═════════════════════════════════════════════════════════════════════════
 

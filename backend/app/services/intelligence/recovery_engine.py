@@ -90,6 +90,9 @@ class RecoveryEngine:
         Returns (old_completion, new_completion) after applying delay reduction.
         Does NOT mutate self.graph permanently.
         """
+        old_result = self.graph.compute_schedule()
+        old_completion = old_result.project_completion_day
+
         # Take a snapshot, modify, compute, rollback
         snap_idx = self.graph.snapshot()
         try:
@@ -97,7 +100,7 @@ class RecoveryEngine:
             new_delay = max(0, orig_delay - delay_reduction)
             self.graph.tasks[task_id].actual_delay = new_delay
             result = self.graph.compute_schedule()
-            return result.baseline_completion_day, result.project_completion_day
+            return old_completion, result.project_completion_day
         finally:
             self.graph.rollback(snap_idx)
             # Clean up snapshot list to avoid unbounded growth
@@ -357,6 +360,9 @@ class RecoveryEngine:
         Simulate two recovery actions applied together.
         Returns combined impact and whether synergy exists.
         """
+        old_result = self.graph.compute_schedule()
+        old_completion = old_result.project_completion_day
+
         snap_idx = self.graph.snapshot()
         try:
             # Apply A
@@ -374,7 +380,7 @@ class RecoveryEngine:
             )
 
             result = self.graph.compute_schedule()
-            combined_saved = result.baseline_completion_day - result.project_completion_day
+            combined_saved = old_completion - result.project_completion_day
             independent_sum = action_a.estimated_days_saved + action_b.estimated_days_saved
             synergy = combined_saved - independent_sum
 

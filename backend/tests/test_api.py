@@ -106,13 +106,21 @@ class TestHealth:
 class TestAuth:
 
     def test_login_wrong_credentials_returns_401(self, client):
-        with patch("app.api.project.db") as mock_db:
-            mock_db.execute = AsyncMock(return_value=MagicMock(scalar_one_or_none=lambda: None))
-            r = client.post("/api/v1/auth/login", json={
-                "email": "nobody@nowhere.com",
-                "password": "wrong"
-            })
-        # May be 401 or 422 depending on mock — either means it didn't succeed
+        mock_session = AsyncMock()
+        mock_session.execute = AsyncMock(return_value=MagicMock(scalar_one_or_none=lambda: None))
+
+        async def _fake_get_db():
+            yield mock_session
+
+        from app.database import get_db
+        app.dependency_overrides[get_db] = _fake_get_db
+
+        r = client.post("/api/v1/auth/login", json={
+            "email": "nobody@nowhere.com",
+            "password": "wrong"
+        })
+        app.dependency_overrides = {}
+
         assert r.status_code in (401, 422, 500)
 
     def test_login_response_has_token_field(self, client):
@@ -164,10 +172,11 @@ class TestAuth:
 
 class TestProjects:
 
-    def _setup_db_get(self, project=None):
+    def _setup_db_get(self, project=None, use_default=True):
         """Returns a fake async DB session whose .get() returns project."""
         session = AsyncMock()
-        session.get = AsyncMock(return_value=project or _mock_project())
+        ret = _mock_project() if (use_default and project is None) else project
+        session.get = AsyncMock(return_value=ret)
         session.add = MagicMock()
         session.flush = AsyncMock()
         session.commit = AsyncMock()
@@ -182,7 +191,7 @@ class TestProjects:
         assert r.status_code in (401, 403, 422)
 
     def test_get_nonexistent_project_returns_404(self, client):
-        session = self._setup_db_get(project=None)  # DB returns None
+        session = self._setup_db_get(project=None, use_default=False)  # DB returns None
 
         async def _fake_db():
             yield session
@@ -196,7 +205,7 @@ class TestProjects:
 
         app.dependency_overrides = {}
         assert r.status_code == 404
-        assert "not found" in r.json()["detail"].lower()
+        assert "not found" in r.json()["message"].lower()
 
     def test_project_response_has_expected_fields(self, client):
         proj = _mock_project()
@@ -314,7 +323,7 @@ class TestAnalysis:
         app.dependency_overrides = {}
 
         assert r.status_code == 422
-        assert "schedule" in r.json()["detail"].lower()
+        assert "schedule" in r.json()["message"].lower()
 
     def test_analysis_requires_auth(self, client):
         r = client.get("/api/v1/analysis/some-project")
@@ -377,11 +386,10 @@ class TestAdmin:
         from app.api.deps import require_auth
         app.dependency_overrides[require_auth] = lambda: _mock_user("admin")
 
-        r = client.post("/api/v1/admin/flags", json={
-            "flag": "nonexistent_feature",
+        r = client.post("/api/v1/admin/feature-flags/nonexistent_feature", json={
             "enabled": True
         })
         app.dependency_overrides = {}
 
         assert r.status_code == 400
-        assert "Unknown flag" in r.json().get("detail", "")
+        assert "Unknown flag" in r.json().get("message", "")

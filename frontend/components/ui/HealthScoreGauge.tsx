@@ -46,7 +46,7 @@ export function HealthScoreGauge({
 }: HealthScoreGaugeProps) {
   const [displayScore, setDisplayScore] = useState(0)
 
-  const resolvedLevel = level || (score !== undefined ? levelFromScore(score) : 'watch')
+  const resolvedLevel = (level || (score !== undefined ? levelFromScore(score) : 'watch')) as NonNullable<HealthScoreGaugeProps['level']>
   const config = LEVEL_CONFIG[resolvedLevel]
 
   useEffect(() => {
@@ -149,7 +149,7 @@ export function HealthScoreBadge({
   level?: HealthScoreGaugeProps['level']
   isLoading?: boolean
 }) {
-  const resolvedLevel = level || (score !== undefined ? levelFromScore(score) : 'watch')
+  const resolvedLevel = (level || (score !== undefined ? levelFromScore(score) : 'watch')) as NonNullable<HealthScoreGaugeProps['level']>
   const config = LEVEL_CONFIG[resolvedLevel]
 
   if (isLoading) {

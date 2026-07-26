@@ -190,13 +190,13 @@ class TestPDFParser:
         long_page = " ".join([f"word{i}" for i in range(1000)])
         chunks = parser._chunk_pages([long_page])
         if len(chunks) > 1:
-            # Last words of chunk[0] should appear in start of chunk[1]
-            words_end = set(chunks[0].text.split()[-20:])
+            # The beginning of chunk[1] must be contained within chunk[0] due to overlap
             words_start = set(chunks[1].text.split()[:20])
-            assert len(words_end & words_start) > 0
+            words_all_0 = set(chunks[0].text.split())
+            assert words_start.issubset(words_all_0)
 
     def test_classify_chunk_types(self):
         parser = PDFParser()
         assert parser._classify_chunk("shall comply with requirement specification") == "spec"
         assert parser._classify_chunk("Request for Information RFI clarification") == "rfi"
-        assert parser._classify_chunk("A normal sentence about construction progress.") == "text"
+        assert parser._classify_chunk("A normal sentence about construction progress that is long enough to be classified as text.") == "text"

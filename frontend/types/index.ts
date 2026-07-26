@@ -195,6 +195,11 @@ export interface AnalysisResult {
     name:                  string
     variance_contribution: number
   }[]
+  health_score?:          number
+  knowledge_graph_summary?: {
+    node_count:           number
+    relationship_count:   number
+  }
 }
 
 /** Lightweight summary for the dashboard header — avoids re-running full analysis */
@@ -445,6 +450,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard',     href: '/dashboard',    icon: 'dashboard',            roles: ['engineer','manager','quality','procurement','executive','admin'] },
   { label: 'Upload',        href: '/upload',       icon: 'upload_file',          roles: ['engineer','manager','quality','procurement','admin'] },
   { label: 'Intelligence',  href: '/intelligence', icon: 'psychology',           roles: ['engineer','manager','quality','procurement','executive','admin'] },
+  { label: 'Compliance',    href: '/compliance',   icon: 'fact_check',           roles: ['engineer','manager','quality','procurement','executive','admin'] },
   { label: 'Recovery Lab',  href: '/recovery',     icon: 'biotech',              roles: ['engineer','manager','procurement','admin'] },
   { label: 'Actions',       href: '/actions',      icon: 'view_kanban',          roles: ['engineer','manager','quality','procurement','executive','admin'] },
   { label: 'AI Assistant',  href: '/assistant',    icon: 'smart_toy',            roles: ['engineer','manager','quality','procurement','admin'] },

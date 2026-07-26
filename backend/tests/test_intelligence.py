@@ -12,6 +12,7 @@ import pytest
 from app.services.parser.schema_mapper import SchemaMapper, CANONICAL_ALIASES
 from app.services.intelligence.montecarlo import MonteCarloEngine, MCConfig
 from app.services.intelligence.risk_engine import RiskEngine, VendorRiskInput
+from app.services.intelligence.graph_engine import ProjectGraphEngine, TaskNode, TaskStatus
 from app.services.intelligence.recovery_engine import RecoveryEngine
 
 

@@ -17,6 +17,7 @@ const ALL_LINKS = [
   { label: 'Dashboard', href: '/dashboard', icon: 'dashboard', desc: 'Project oversight and key KPIs' },
   { label: 'Upload Center', href: '/upload', icon: 'cloud_upload', desc: 'Ingest schedule, spec, and procurement files' },
   { label: 'Intelligence Graph', href: '/intelligence', icon: 'psychology', desc: 'Critical Path Method and float analytics' },
+  { label: 'Compliance Audit', href: '/compliance', icon: 'fact_check', desc: 'TIA-942 and Uptime standards audit' },
   { label: 'Recovery Lab', href: '/recovery', icon: 'biotech', desc: 'Simulate delay mitigation scenarios' },
   { label: 'Action Tracker', href: '/actions', icon: 'assignment_turned_in', desc: 'Approve actions and track execution' },
   { label: 'AI Assistant', href: '/assistant', icon: 'smart_toy', desc: 'Ask natural language project queries' },

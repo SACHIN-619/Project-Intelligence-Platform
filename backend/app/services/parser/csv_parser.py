@@ -203,7 +203,7 @@ class ScheduleParser:
 
     def _detect_vendor_columns(self, df: pd.DataFrame) -> bool:
         """Does this dataframe look like a vendor/procurement sheet?"""
-        vendor_signals = {"vendor_name", "vendor", "supplier", "lead_time", "equipment_type"}
+        vendor_signals = {"vendor_name", "vendor", "supplier", "lead_time", "equipment_type", "delivery_status"}
         cols_lower = {c.lower() for c in df.columns}
         return len(vendor_signals & cols_lower) >= 2
 
@@ -295,7 +295,7 @@ class ScheduleParser:
         schema_result = self.mapper.map(list(df.columns))
         df_mapped = self._apply_mapping(df, schema_result)
 
-        is_vendor_sheet = self._detect_vendor_columns(df)
+        is_vendor_sheet = self._detect_vendor_columns(df_mapped)
 
         for idx, row in df_mapped.iterrows():
             row_dict = row.to_dict()

@@ -31,12 +31,18 @@ from app.api.actions import router as actions_router
 from app.api.admin import router as admin_router
 # Phase 7: Real-time WebSocket
 from app.api.websocket import router as ws_router
+from app.api.compliance import router as compliance_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Create DB tables on startup; clean shutdown."""
-    await create_tables()
+    try:
+        await create_tables()
+    except Exception as e:
+        print(f"⚠️  [lifespan startup warning] DB tables check failed: {e}")
+        print("    Running with degraded DB connectivity")
+
     print(f"✅  {settings.app_name} v{settings.app_version} ready")
     print(f"    Docs  → http://localhost:8000/docs")
     print(f"    Env   → {settings.environment}")
@@ -81,6 +87,7 @@ app.include_router(actions_router,    prefix=PREFIX)           # /api/v1/actions
 app.include_router(admin_router,      prefix=PREFIX)           # /api/v1/admin/...
 app.include_router(report_router,     prefix=PREFIX)           # /api/v1/report/...
 app.include_router(ws_router,         prefix=PREFIX)           # /api/v1/ws/{project_id}
+app.include_router(compliance_router, prefix=PREFIX)           # /api/v1/compliance/...
 
 
 # ── Health ─────────────────────────────────────────────────────────────────────

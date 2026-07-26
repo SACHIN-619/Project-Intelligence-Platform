@@ -151,7 +151,7 @@ class SchemaMapper:
     """
 
     FUZZY_THRESHOLD = 72      # rapidfuzz score 0–100; below this → stage 3
-    SEMANTIC_THRESHOLD = 0.60  # cosine similarity; below this → unmapped
+    SEMANTIC_THRESHOLD = 0.70  # cosine similarity; below this → unmapped
 
     def __init__(self, tenant_memory: Optional[Dict[str, str]] = None):
         """

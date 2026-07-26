@@ -182,6 +182,50 @@ class ConfidencePipeline:
             suggestions.append("Equipment specification sheets (PDF) for compliance checking")
         return suggestions
 
+    @classmethod
+    async def compute_for_project(
+        cls,
+        db: Any,
+        project_id: str,
+        org_id: str,
+        rag_chunks_count: int = 0,
+        threshold: float = 0.60,
+    ) -> ConfidenceReport:
+        from app.models.db import Task, Vendor
+        from sqlalchemy import select
+
+        pipeline = cls(threshold=threshold)
+        pipeline.register_rag_evidence(rag_chunks_count)
+
+        # 1. Query Tasks
+        stmt_tasks = select(Task).where(Task.project_id == project_id)
+        tasks = (await db.execute(stmt_tasks)).scalars().all()
+
+        has_tasks = len(tasks) > 0
+        has_durations = any(t.planned_duration is not None for t in tasks) if has_tasks else False
+        has_dependencies = any(t.depends_on for t in tasks) if has_tasks else False
+        has_statuses = any(t.status for t in tasks) if has_tasks else False
+
+        pipeline.register_field("task_name", DataSource.MANUAL_UPLOAD if has_tasks else DataSource.DEFAULT_ASSUMED, has_tasks)
+        pipeline.register_field("duration", DataSource.MANUAL_UPLOAD if has_durations else DataSource.DEFAULT_ASSUMED, has_durations)
+        pipeline.register_field("dependency", DataSource.MANUAL_UPLOAD if has_dependencies else DataSource.DEFAULT_ASSUMED, has_dependencies)
+        pipeline.register_field("status", DataSource.MANUAL_UPLOAD if has_statuses else DataSource.DEFAULT_ASSUMED, has_statuses)
+
+        # 2. Query Vendors
+        stmt_vendors = select(Vendor).where(Vendor.project_id == project_id)
+        vendors = (await db.execute(stmt_vendors)).scalars().all()
+
+        has_vendors = len(vendors) > 0
+        has_vendor_names = any(v.name for v in vendors) if has_vendors else False
+        has_lead_times = any(v.lead_time_days is not None for v in vendors) if has_vendors else False
+        has_delivery_status = any(v.delivery_status for v in vendors) if has_vendors else False
+
+        pipeline.register_field("vendor_name", DataSource.MANUAL_UPLOAD if has_vendor_names else DataSource.DEFAULT_ASSUMED, has_vendor_names)
+        pipeline.register_field("lead_time", DataSource.MANUAL_UPLOAD if has_lead_times else DataSource.DEFAULT_ASSUMED, has_lead_times)
+        pipeline.register_field("delivery_status", DataSource.MANUAL_UPLOAD if has_delivery_status else DataSource.DEFAULT_ASSUMED, has_delivery_status)
+
+        return pipeline.compute()
+
 
 # ── Convenience functions ─────────────────────────────────────────────────────
 
