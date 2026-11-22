@@ -1,144 +1,154 @@
 # Project Impact Intelligence (PII)
 
-> **ET AI Hackathon 2.0 · Problem Statement 4 · EPC Data Centre Intelligence Platform**  
-> **Prize Pool:** ₹10,00,000 · **Built by:** Sachin · Anurag University  
-> **Backend Server Stack:** FastAPI, PostgreSQL, Redis, local BGE Embeddings, Gemini AI Layers  
-> **Frontend Stack:** Next.js, React Flow, Tailwind CSS, Recharts  
+> **Enterprise AI Platform for Data Centre EPC Project Delivery**  
+> Predict schedule delays, audit TIA-942 compliance, simulate recovery options, and ground natural-language engineering queries using deterministic graph algorithms and hybrid RAG.
 
 ---
 
-## 🏗️ System Architecture & Data Flow (Start-to-End)
+## 📌 Executive Summary & Problem Solved
+
+### The Problem in Hyperscale EPC Projects
+Engineering, Procurement, and Construction (EPC) for data centers requires delivering complex electrical/mechanical infrastructure (generators, chillers, sub-stations, switchgear) under immovable launch deadlines. Project teams routinely suffer from:
+1. **Hidden Dependency Cascades:** A 2-week vendor shipping delay on an uninterruptible power supply (UPS) goes undetected until downstream commissioning fails, causing weeks of critical path delays.
+2. **Static, Manual Analysis:** Engineers spend **13+ hours weekly** manually reconciling 500+ line Excel/P6 schedules across disconnected contractor spreadsheets.
+3. **Information Silos:** Thousands of pages of specifications (e.g., TIA-942 Tier III, ASHRAE, vendor submittals) sit idle in PDFs/DOCX, ungrounded in day-to-day decisions.
+4. **No Organizational Memory:** When recovery actions are taken (adding a crew, parallelizing testing, swapping vendors), teams fail to track outcomes, causing repeat mistakes on future builds.
+
+### How PII Solves It (With Real-World Example)
+* **Example Scenario:** An upload contains a 14-day vendor shipping slip for a "Chilled Water Chiller". 
+* **PII Workflow:**
+  1. **Schema Mapping & Ingestion:** PII extracts tasks, durations, and dependencies from CSV, XLSX, PDF, or DOCX, automatically matching columns via exact, Levenshtein fuzzy, and semantic BGE similarity.
+  2. **CPM Graph Computation:** Deterministically evaluates forward/backward passes to identify the true critical path and calculate total/free float.
+  3. **1,000-Run Monte Carlo Simulation:** Models uncertainty with PERT-Beta probability distributions, surfacing realistic P50, P80, and P90 completion timelines.
+  4. **Multi-Signal Risk Engine:** Cross-references open-air tasks with 14-day Open-Meteo weather forecasts and historical vendor delivery scores across previous projects.
+  5. **Auto-Recovery Simulation:** Generates quantified recovery scenarios (e.g., "Fast-track Commissioning in parallel: saves 11 days, 85% feasibility").
+  6. **Hybrid RAG Engineering Assistant:** Grounded directly in project chunks via 384-dimensional pgvector cosine similarity + lexical matching for instant technical queries.
+
+---
+
+## 🏗️ End-to-End System Architecture
 
 ```
-                            [ USER / CLIENT INTERFACE ]
-                                    Next.js SPA
-                                         |
-                                         v
-                            [ FastAPI API GATEWAY ]
-                                         |
-      +----------------------------------+----------------------------------+
-      | (Upload Pipeline)                | (RAG / QA Pipeline)              | (Simulation & Risks)
-      v                                  v                                  v
-[Schema Mapper]                   [RAG Search Pipeline]              [ProjectGraphEngine]
-  ├── Exact Lookup                  ├── Local BGE Embeddings           ├── CPM Scheduler (Float)
-  ├── Fuzzy Match (Levenshtein)     └── Cosine Sim Query               ├── Monte Carlo (1K runs)
-  └── Semantic Compare (BGE)             |                             ├── Recovery Engine
-      |                                  v                                  |
-      v                         [Gemini L1 / Groq L2]                       v
-[CSV / PDF Parsers]                      |                            [Risk Engine]
-  ├── Task Columns                       v                            ├── Weather Forecasts
-  └── Tier Standards (TIA-942)    [AI Reasoning Agents]               └── Vendor History
-      |                                                                     |
-      v                                                                     v
-[PostgreSQL & pgvector] <─────────────────────────────────────────────[Decision Memory]
+                             [ CLIENT TIER (Vercel) ]
+                  Next.js 14 App Router · TypeScript · Tailwind CSS
+                     React Flow (Dependency Graph) · Recharts
+                                        │
+                                        │ HTTPS / WSS
+                                        ▼
+                            [ API GATEWAY (Render) ]
+                 FastAPI Core · JWT RBAC (Tenant-Isolated by Org ID)
+                                        │
+            ┌───────────────────────────┼───────────────────────────┐
+            ▼                           ▼                           ▼
+    [ INGESTION PIPELINE ]     [ INTELLIGENCE ENGINES ]     [ HYBRID RAG ENGINE ]
+  • Exact/Fuzzy/BGE Mapper    • ProjectGraphEngine (CPM)   • BGE-small-en-v1.5
+  • CSV/XLSX Schedule Parser  • 1K-Run Monte Carlo (Beta)  • PostgreSQL pgvector (384-d)
+  • PDF (PyMuPDF) Extractor   • Multi-Signal Risk Scoring  • Keyword / Recency Scoring
+  • DOCX Document Parser      • Decision Memory Loop       • Gemini L1 / Groq L2 Fallback
+            │                           │                           │
+            └───────────────────────────┼───────────────────────────┘
+                                        ▼
+                           [ PERSISTENCE & CACHE ]
+                   PostgreSQL + pgvector (Supabase / Neon)
+                     Redis Queue & In-Process Fallback
 ```
 
 ---
 
-## ⚡ What Is PII?
+## 🛠️ Tech Stack & Technical Justifications
 
-Project Impact Intelligence (PII) is a production-grade AI platform that transforms how EPC (Engineering, Procurement, and Construction) project managers understand, forecast, and mitigate schedule risk.
-
-### The Problem It Solves
-Traditional EPC project management relies on manually inspecting 500-row Excel schedules, calling suppliers individually, and writing static risk reports that are obsolete by the time they are printed. This process consumes **13+ hours per week** per project manager.
-
-### What PII Does Instead
-Upload your project schedule (CSV/XLSX) or technical specification (PDF) and PII instantly:
-1. **Performs Schema-Agnostic Ingestion:** Maps columns using exact, fuzzy, or semantic matches and caches your layout structure.
-2. **Computes the Critical Path:** Uses CPM graph algorithms to determine task float margins and identify delayed items.
-3. **Runs Monte Carlo Simulations:** Forecasts P50/P80/P90 project completion dates using 1,000 PERT-Beta schedule iterations.
-4. **Assesses Risks:** Aggregates weather forecasts (Open-Meteo), vendor reliability history, and data confidence.
-5. **Audits Compliance:** Assesses specifications against Uptime Tier III and TIA-942 standards and raises Non-Conformance Reports (NCRs).
-6. **Recommends Recovery Options:** Synthesizes actionable recovery steps (add crew, switch to backup vendor, parallel tasks).
-7. **Maintains a Decision Memory:** Learns from approved and rejected scenarios to refine future recommendations.
-8. **Hosts RAG-Powered AI Chat:** Answers natural language project queries instantly.
-
-**The result:** **82+ hours saved** per project — a **97% time reduction** compared to manual schedule analysis.
+| Layer | Technology | Why We Chose It Over Alternatives |
+| :--- | :--- | :--- |
+| **Frontend** | **Next.js 14 (App Router), TypeScript** | Server-side performance, rigid type-safety for complex CPM graph nodes, and zero-config deployment on Vercel. |
+| **Interactive Viz** | **React Flow, Recharts** | High-performance interactive DAG visualization for critical paths, float margins, and Monte Carlo probability distribution curves. |
+| **Backend API** | **FastAPI (Python 3.12)** | Asynchronous endpoints (`async/await`), automatic OpenAPI docs, and native integration with scientific computing packages. |
+| **Database** | **PostgreSQL + pgvector** | Unified relational data model (projects, tasks, tenants) and vector search in a single transactional database without needing an external vector DB. |
+| **Embeddings** | **BAAI/bge-small-en-v1.5** | High MTEB retrieval performance with compact 384-dimensional vectors, optimized for fast cosine distance ranking with minimal memory usage. |
+| **AI LLM Tier** | **Gemini 1.5 Flash + Groq Llama-3.3 Fallback** | Sub-second latency and large token context with Gemini, backed by an ultra-fast Groq Llama fallback to prevent downtime. |
+| **Graph & Sim** | **NetworkX, NumPy, SciPy** | Exact topological sorting, cycles detection, critical path calculation, and vectorized 1,000-run Monte Carlo simulations. |
+| **Queue & Worker**| **Redis / ARQ + In-Process Fallback** | Fast background file parsing and simulation queue, with automated graceful degradation to synchronous HTTP execution if Redis is unavailable. |
 
 ---
 
-## 📁 Repository Directory Structure
+## 📁 Repository Structure
 
 ```
 PII/
-├── backend/                             ← FastAPI Core Server
+├── backend/                             ← FastAPI Core Engine
 │   ├── app/
-│   │   ├── main.py                      ← Router mounting & startup check
-│   │   ├── database.py                  ← SQLAlchemy connection & schema check
-│   │   ├── api/                         ← Endpoints (auth, projects, compliance, etc.)
-│   │   ├── core/                        ← JWT Security & request logging middleware
-│   │   └── services/                    ← AI, Graph Engine, Monte Carlo, RAG pipelines
-│   ├── tests/                           ← 91 pytest unit & integration tests
-│   └── requirements.txt                 ← Server requirements
+│   │   ├── api/                         ← REST & WebSocket routers (auth, upload, simulation, RAG)
+│   │   ├── core/                        ← JWT auth, tenant middleware, error interceptors
+│   │   ├── models/                      ← SQLAlchemy ORM models & Pydantic validation schemas
+│   │   ├── services/
+│   │   │   ├── ai/                      ← Gemini & Groq LLM orchestration
+│   │   │   ├── intelligence/            ← CPM graph engine, Monte Carlo, risk scorer, AI memory
+│   │   │   ├── parser/                  ← Schedule (CSV/XLSX), PDF, DOCX parsers & schema mapper
+│   │   │   ├── queue/                   ← Background jobs and queue processors
+│   │   │   ├── rag/                     ← Vector retrieval & hybrid scoring pipeline
+│   │   │   └── report/                  ← ReportLab PDF audit generator
+│   │   ├── config.py                    ← Environment settings & CORS parsing
+│   │   ├── database.py                  ← Async SQLAlchemy engine with pooler optimization
+│   │   └── main.py                      ← Application factory & router registration
+│   ├── Dockerfile                       ← Multi-stage production container
+│   ├── requirements.txt                 ← Production dependencies
+│   └── tests/                           ← 91 unit and integration tests
 │
-├── frontend/                            ← Next.js client
-│   ├── app/                             ← Pages & routing layout
-│   ├── components/                      ← React UI (React Flow graph, charts)
-│   ├── contexts/                        ← Auth & Project state contexts
-│   ├── lib/                             ← API client fetch logic
-│   └── package.json                     ← Frontend configuration
+├── frontend/                            ← Next.js 14 Client App
+│   ├── app/                             ← App Router pages (Dashboard, Upload, Intelligence, Recovery, Assistant)
+│   ├── components/                      ← Reusable UI, React Flow canvas, metric strips
+│   ├── contexts/                        ← Auth & Active Project state management
+│   ├── hooks/                           ← Custom hooks (useWebSocket, useToast)
+│   ├── lib/                             ← API client fetch mapping
+│   └── types/                           ← TypeScript interface definitions
+│
+└── README.md                            ← Root architectural blueprint
 ```
 
 ---
 
-## 🚀 Quick Start (Local Setup)
+## 🚀 Quickstart & Local Setup
 
-Ensure you have **Python 3.12+**, **Node.js 18+**, **PostgreSQL** (with pgvector), and **Redis** running locally.
+### 1. Prerequisites
+* Python 3.11 or 3.12
+* Node.js 18+ and npm
+* PostgreSQL database with `pgvector` enabled (or Supabase / Neon instance)
 
-### 1. Run Backend Services (Docker)
-```bash
-# Run PostgreSQL with pgvector
-docker run -d --name pii_pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 pgvector/pgvector:pg16
-
-# Run Redis cache & job queue
-docker run -d --name pii_redis -p 6379:6379 redis:7-alpine
-```
-
-### 2. Configure & Start Backend
+### 2. Backend Setup
 ```bash
 cd backend
 python -m venv .venv
-.\.venv\Scripts\activate   # On Windows
+# On Windows:
+.venv\Scripts\activate
+# On Linux/macOS:
+source .venv/bin/activate
 
-# Install packages
 pip install -r requirements.txt
-pip install -r requirements-ai.txt
-pip install -r requirements-dev.txt
-
-# Configure settings
 cp .env.example .env
-# Edit .env and set your DATABASE_URL, REDIS_URL, and GEMINI_API_KEY
+# Fill in DATABASE_URL, SECRET_KEY, and GEMINI_API_KEY in .env
 
-# Run FastAPI Server (port 8000)
-uvicorn app.main:app --port 8000
+uvicorn app.main:app --reload --port 8000
 ```
-Interactive Swagger API documentation will be available at: http://localhost:8000/docs
+Swagger API documentation will be live at: `http://localhost:8000/docs`
 
-### 3. Configure & Start Frontend
+### 3. Frontend Setup
 ```bash
-cd ../frontend
+cd frontend
 npm install
-
-# Run Frontend Client (port 3000)
 npm run dev
 ```
-Open http://localhost:3000 in your browser.
+Client dashboard will be live at: `http://localhost:3000`
 
 ---
 
-## 📊 Performance Benchmarks (300-Task Project Chain)
+## 🌐 Production Deployment
 
-PII includes optimized calculations running sensitivity maps and Monte Carlo simulations in milliseconds:
-
-* **CPM Schedule Calculations:** **~23.91 ms**
-* **Monte Carlo Simulation (1,000 iterations):** **~1.22 seconds**
-* **Sensitivity Analysis Loop:** **< 3 ms**
-* **Next.js Static Compilation:** **100% successful with 0 errors**
+* **Database:** Provision a PostgreSQL instance on **Supabase** or **Neon.tech**. Run `CREATE EXTENSION IF NOT EXISTS vector;`.
+* **Backend:** Deploy `backend` to **Render** as a Web Service via Dockerfile. Set environment variables (`DATABASE_URL`, `SECRET_KEY`, `GEMINI_API_KEY`, `CORS_ORIGINS`).
+* **Frontend:** Deploy `frontend` to **Vercel**. Set `NEXT_PUBLIC_API_URL=https://<your-render-app>.onrender.com`.
 
 ---
 
-## 🏆 Innovation Highlights
-* **Adaptive Schema Memory:** Learns column aliases on the fly, making it fully schema-agnostic.
-* **Vectorized Monte Carlo:** NumPy-driven variance correlation runs sensitivity analysis loops instantly.
-* **3-Layer Fallback Chain:** Gracefully degrades from Gemini Pro/Flash -> Groq LLaMA-3.3-70B -> local defaults so the application never fails under API quota limits.
-* **Uptime Tier Compliance Checker:** Translates physical documents directly to technical standard checks and NCR recommendations.
+## 🛡️ Enterprise Security & Multi-Tenancy
+* **Tenant Isolation:** Every primary database entity (`Task`, `Project`, `Upload`, `Risk`, `Scenario`, `DocumentChunk`, `AuditEvent`) is strictly partitioned by `org_id`.
+* **RBAC:** Explicit permission guards (`CanUpload`, `CanSimulate`, `CanApprove`, `AdminOnly`) validate user roles before triggering actions.
+* **Prepared Statement Compatibility:** Automated statement cache disabling prevents collision issues across transaction connection poolers.
