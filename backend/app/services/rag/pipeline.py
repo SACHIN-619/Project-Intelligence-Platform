@@ -141,7 +141,7 @@ class RAGPipeline:
     def _semantic_score(
         self, query_emb: List[float], chunk_emb: Optional[List[float]]
     ) -> float:
-        if not chunk_emb:
+        if chunk_emb is None or len(chunk_emb) == 0:
             return 0.0
         a = np.array(query_emb, dtype=np.float32)
         b = np.array(chunk_emb, dtype=np.float32)
