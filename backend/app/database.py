@@ -22,6 +22,11 @@ from app.config import settings
 
 
 # ── Engine ───────────────────────────────────────────────────────────────────
+# For PgBouncer / Neon / Supabase pooled connection support, disable statement cache if pooling is used
+connect_args = {}
+if "neon.tech" in settings.database_url or "pooler.supabase.com" in settings.database_url or ":6543" in settings.database_url:
+    connect_args["statement_cache_size"] = 0
+
 engine: AsyncEngine = create_async_engine(
     settings.database_url,
     pool_size=settings.database_pool_size,
@@ -29,6 +34,7 @@ engine: AsyncEngine = create_async_engine(
     echo=settings.debug,
     future=True,
     pool_pre_ping=True,  # <-- This prevents the "connection is closed" crashes!
+    connect_args=connect_args,
 )
 
 # ── Session factory ──────────────────────────────────────────────────────────

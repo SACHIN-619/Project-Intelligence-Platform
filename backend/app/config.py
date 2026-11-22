@@ -11,9 +11,10 @@ project.py) and have been restored under their original names.
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
-from typing import List, Optional
-
+from typing import List, Optional, Union
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -30,7 +31,21 @@ class Settings(BaseSettings):
     app_version: str = "1.0.0"                 # RESTORED — used in main.py
     environment: str = "development"
     debug: bool = True
-    cors_origins: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    cors_origins: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str):
+            v_str = v.strip()
+            if v_str.startswith("[") and v_str.endswith("]"):
+                try:
+                    return json.loads(v_str)
+                except Exception:
+                    pass
+            # comma-separated string fallback e.g. "https://app.vercel.app,http://localhost:3000"
+            return [origin.strip() for origin in v_str.split(",") if origin.strip()]
+        return v
 
     # ── Database (High-Traffic Config) ────────────────────────────────────────
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/pii"
