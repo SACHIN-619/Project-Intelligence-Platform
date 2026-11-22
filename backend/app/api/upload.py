@@ -28,6 +28,7 @@ from app.models.db import Upload, User
 from app.models.schemas import UploadPreview, UploadResponse, MessageResponse
 from app.services.parser.csv_parser import ScheduleParser
 from app.services.parser.pdf_parser import PDFParser
+from app.services.parser.docx_parser import DocxParser
 from app.services.parser.schema_mapper import SchemaMapper
 from app.services.queue.jobs import job_queue, job_process_upload, job_run_analysis
 
@@ -126,6 +127,21 @@ async def preview_upload(
             sample_rows=[{"text": c.text[:200]} for c in pdf_result.chunks[:3]],
         )
 
+    elif ext in ("docx", "doc"):
+        docx_parser = DocxParser()
+        docx_result = docx_parser.parse(content, file.filename)
+        return UploadPreview(
+            filename=file.filename,
+            detected_type=docx_result.document_type,
+            row_count=docx_result.page_count,
+            columns_detected=[],
+            schema_mapping={},
+            unmapped_columns=[],
+            quality_score=85.0,
+            warnings=docx_result.warnings,
+            sample_rows=[{"text": c.text[:200]} for c in docx_result.chunks[:3]],
+        )
+
     raise HTTPException(status_code=400, detail="Unsupported file type for preview")
 
 
@@ -148,6 +164,15 @@ async def commit_upload(
 
     ext = file.filename.rsplit(".", 1)[-1].lower()
 
+    # Verify project exists and belongs to user's organisation
+    from app.models.db import Project
+    project = await db.get(Project, project_id)
+    if not project or project.org_id != user.org_id or project.is_deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found or access denied.",
+        )
+
     # Save to storage
     file_path = await _save_file(content, file.filename)
 
@@ -167,13 +192,11 @@ async def commit_upload(
     upload_id = str(upload.id)
     await db.commit()
 
-    # Enqueue processing
+    # Enqueue processing (job_process_upload will trigger analysis upon successful completion)
     await job_queue.enqueue(
         job_process_upload,
         upload_id, project_id, user.org_id, file_path, file.filename
     )
-    # Also trigger analysis after processing (delayed via job chaining)
-    await job_queue.enqueue(job_run_analysis, project_id, user.org_id)
 
     return UploadResponse.model_validate(upload)
 

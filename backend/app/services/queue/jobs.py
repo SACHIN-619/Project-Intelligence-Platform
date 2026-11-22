@@ -54,7 +54,7 @@ async def job_process_upload(
     """
     from app.database import get_db_context
     from app.models.db import Upload, Task, Vendor, DocumentChunk, SchemaMappingMemory
-    from app.services.parser import ScheduleParser, PDFParser, build_mapper_from_db_memory
+    from app.services.parser import ScheduleParser, PDFParser, DocxParser, build_mapper_from_db_memory
     from app.services.ai import embedding_service
     from sqlalchemy import select
     import aiofiles
@@ -104,6 +104,7 @@ async def job_process_upload(
                     status=pt.status,
                     completion=pt.completion,
                     owner=pt.owner,
+                    responsible_vendor=pt.vendor_name,
                     extra_fields=pt.extra,
                 ))
 
@@ -140,7 +141,7 @@ async def job_process_upload(
                 })
             quality_score = result.quality_score
 
-        elif ext in ("pdf", "docx", "doc"):
+        elif ext == "pdf":
             pdf_parser = PDFParser()
             pdf_result = pdf_parser.parse(content, filename)
             chunks_to_embed = [
@@ -151,6 +152,18 @@ async def job_process_upload(
             quality_score = 80.0
             await _broadcast(project_id, "Saving tasks to database", 40,
                              f"{pdf_result.page_count} pages, {len(chunks_to_embed)} chunks")
+
+        elif ext in ("docx", "doc"):
+            docx_parser = DocxParser()
+            docx_result = docx_parser.parse(content, filename)
+            chunks_to_embed = [
+                {"text": c.text, "source": filename,
+                 "page": c.page_number, "type": c.chunk_type}
+                for c in docx_result.chunks
+            ]
+            quality_score = 85.0
+            await _broadcast(project_id, "Saving document chunks to database", 40,
+                             f"{docx_result.page_count} sections, {len(chunks_to_embed)} chunks")
 
         else:
             await _update_upload(db, upload_id, "failed",

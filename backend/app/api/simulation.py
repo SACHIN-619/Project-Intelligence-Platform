@@ -239,6 +239,9 @@ async def compound_scenario(
     if not sc_a or not sc_b:
         raise HTTPException(status_code=404, detail="One or both scenarios not found.")
 
+    if sc_a.org_id != user.org_id or sc_b.org_id != user.org_id or str(sc_a.project_id) != project_id or str(sc_b.project_id) != project_id:
+        raise HTTPException(status_code=403, detail="Scenarios do not belong to the requested project or organisation.")
+
     engine = await _build_engine(project_id, user.org_id, db)
     baseline = engine.compute_schedule()
     old_delay = baseline.total_delay

@@ -17,10 +17,11 @@ from app.services.parser.pdf_parser import (
     PDFParseResult,
     TextChunk,
 )
+from app.services.parser.docx_parser import DocxParser
 
 __all__ = [
     "SchemaMapper", "SchemaMappingResult", "MappedField",
     "build_mapper_from_db_memory", "CANONICAL_ALIASES",
     "ScheduleParser", "ParseResult", "ParsedTask", "ParsedVendor",
-    "PDFParser", "PDFParseResult", "TextChunk",
+    "PDFParser", "PDFParseResult", "TextChunk", "DocxParser",
 ]
