@@ -52,6 +52,19 @@ class Settings(BaseSettings):
     database_pool_size: int = 10
     database_max_overflow: int = 20
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def assemble_database_url(cls, v: str) -> str:
+        if isinstance(v, str):
+            v_str = v.strip()
+            # If user pasted postgresql:// or postgres:// without asyncpg driver
+            if v_str.startswith("postgres://"):
+                v_str = "postgresql+asyncpg://" + v_str[len("postgres://"):]
+            elif v_str.startswith("postgresql://") and not v_str.startswith("postgresql+"):
+                v_str = "postgresql+asyncpg://" + v_str[len("postgresql://"):]
+            return v_str
+        return v
+
     # ── Redis (optional — falls back to in-process queue) ────────────────────
     redis_url: str = "redis://localhost:6379/0"
 
