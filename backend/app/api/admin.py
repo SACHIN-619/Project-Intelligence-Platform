@@ -453,7 +453,7 @@ async def get_metrics(
     if outcome_events:
         accuracies = []
         for e in outcome_events:
-            data = e.new_values or {}
+            data = getattr(e, "after_state", None) or getattr(e, "new_values", None) or {}
             if isinstance(data, str):
                 import json
                 try:

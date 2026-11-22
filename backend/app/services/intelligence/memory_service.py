@@ -55,7 +55,7 @@ async def record_analysis_event(
             event_type="memory_analysis_complete",
             entity_type="project",
             entity_id=project_id,
-            new_values=payload,
+            after_state=payload,
         ))
         # Don't commit here — caller commits with the rest of the batch
         logger.info(f"[AIMemory] Analysis event recorded for project {project_id}")
@@ -95,7 +95,7 @@ async def record_decision(
             user_id=user_id,
             event_type="memory_decision",
             entity_type="action",
-            new_values=payload,
+            after_state=payload,
         ))
         await db.commit()
         logger.info(
@@ -138,7 +138,7 @@ async def record_outcome(
             event_type="memory_outcome",
             entity_type="action",
             entity_id=action_id,
-            new_values=payload,
+            after_state=payload,
         ))
         await db.commit()
         logger.info(
@@ -175,7 +175,7 @@ async def get_similar_past_recoveries(
 
         relevant = []
         for row in rows:
-            data = row.new_values or {}
+            data = getattr(row, "after_state", None) or getattr(row, "new_values", None) or {}
             if isinstance(data, str):
                 try:
                     data = json.loads(data)

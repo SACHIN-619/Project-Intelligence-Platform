@@ -89,6 +89,7 @@ class Project(Base):
     baseline_completion_day = Column(Integer)      # frozen on first analysis
     predicted_completion_day = Column(Integer)
     confidence_score = Column(Float, default=0.0)  # 0.0–1.0
+    health_score = Column(Float, nullable=True)     # 0.0–100.0 overall health score
     extra_fields = Column(JSONB, default=dict)     # absorbs unknown schema fields
     created_by = Column(UUID(as_uuid=False), ForeignKey("users.id"))
     created_at = Column(DateTime, default=_now)
@@ -129,6 +130,7 @@ class Task(Base):
 
     status = Column(String(50), default="pending")  # pending | running | delayed | completed
     owner = Column(String(255))
+    responsible_vendor = Column(String(255))
     vendor_id = Column(UUID(as_uuid=False), ForeignKey("vendors.id"), nullable=True)
 
     # intelligence
