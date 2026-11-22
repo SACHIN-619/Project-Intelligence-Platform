@@ -3,6 +3,49 @@
 > **Enterprise AI Platform for Data Centre EPC Project Delivery**  
 > Predict schedule delays, audit TIA-942 Tier III compliance, simulate recovery interventions, and ground natural-language engineering queries using deterministic graph analytics, Monte Carlo simulations, and multi-tenant hybrid RAG.
 
+<div align="center">
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20App-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://projectintelligenceplatform.vercel.app/)
+[![API Gateway](https://img.shields.io/badge/API%20Gateway-Render%20Live-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://project-intelligence-platform-o5iu.onrender.com/docs)
+[![API Health](https://img.shields.io/badge/System%20Status-Active%20%26%20Healthy-success?style=for-the-badge)](https://project-intelligence-platform-o5iu.onrender.com/health)
+
+<br/>
+
+**Languages & Frameworks**  
+![Python](https://img.shields.io/badge/Python%203.12-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic%20v2-E92063?style=flat-square&logo=pydantic&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?style=flat-square&logo=sqlalchemy&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Next.js 14](https://img.shields.io/badge/Next.js%2014-000000?style=flat-square&logo=next.js&logoColor=white)
+![React Flow](https://img.shields.io/badge/React%20Flow-FF0072?style=flat-square&logo=react&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)
+
+<br/>
+
+**Data & AI / ML**  
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![pgvector](https://img.shields.io/badge/pgvector-384--dim-0288D1?style=flat-square)
+![BGE Embeddings](https://img.shields.io/badge/BAAI%2Fbge--small--en--v1.5-FF6F00?style=flat-square)
+![Gemini AI](https://img.shields.io/badge/Google%20Gemini%20API-4285F4?style=flat-square&logo=google&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq%20Llama--3.3-F05032?style=flat-square)
+![NetworkX](https://img.shields.io/badge/NetworkX-DAG%20%26%20CPM-24292E?style=flat-square)
+![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white)
+![SciPy](https://img.shields.io/badge/SciPy-8CAAE6?style=flat-square&logo=scipy&logoColor=white)
+![RapidFuzz](https://img.shields.io/badge/RapidFuzz-Schema%20Mapper-green?style=flat-square)
+
+<br/>
+
+**Infrastructure & DevOps**  
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis%20%2F%20ARQ-DC382D?style=flat-square&logo=redis&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase%20Postgres-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
+![Neon](https://img.shields.io/badge/Neon.tech-00E599?style=flat-square&logoColor=black)
+![Render](https://img.shields.io/badge/Render-Web%20Service-46E3B7?style=flat-square&logo=render&logoColor=black)
+![Vercel](https://img.shields.io/badge/Vercel-Deployment-000000?style=flat-square&logo=vercel&logoColor=white)
+
+</div>
+
 ---
 
 ## 1. 🌐 The Real-World Problem & End-to-End User Workflow
