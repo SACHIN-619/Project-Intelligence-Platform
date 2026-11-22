@@ -66,6 +66,13 @@ jinja2==3.1.6
 # weasyprint==62.3
 
 # =========================
+# AI / STRING MATCHING
+# =========================
+rapidfuzz==3.13.0
+google-generativeai==0.7.2
+groq>=0.9.0
+
+# =========================
 # UTILITIES
 # =========================
 aiofiles==24.1.0
